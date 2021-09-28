@@ -8,7 +8,7 @@ import time
 molit_save = conn_db.get_path('molit_savepath')
 
 # 주택 미분양 (시군구별 / 규모별 / 공사완료후)
-def clean_data_from_molit():
+def clean_unsold():
     # 시군구별 미분양
     df_1 = conn_db.from_('from_국토교통부', '시군구별_미분양')
     df_1['값'] = df_1['값'].astype(int)
@@ -275,7 +275,6 @@ def _clean_type(trade_type, df):
     return df
 
 # 국토부 실거래가 전처리
-@helper.timer
 def clean_molit_real_trade_price():
     '''
     국토부 실거래가 전처리

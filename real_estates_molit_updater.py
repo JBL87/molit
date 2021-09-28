@@ -27,13 +27,14 @@ def _get_data(url):
         print('업데이트 할 내역 없음')
 
 # 새로 받아서 이전 것과 합친 후 저장
-def _clean_and_union(url_dict):  
+def _clean_and_union(url_dict, start_dt, end_dt):
     common_url = f'http://stat.molit.go.kr/portal/openapi/service/rest/getList.do?key={molit_key}&'
-    date = f'&start_dt={start_dt}&end_dt={end_dt}'   
+    date = f'&start_dt={start_dt}&end_dt={end_dt}'
     try:
         for url in url_dict.keys():
             name = url_dict[url]
             df = _get_data(common_url + url + date)
+
             # 차원컬럼만 선택해서 컬럼명에 있는 공백제거
             cols = df.select_dtypes('object').columns.tolist()
             for col in df.columns.tolist():
@@ -47,9 +48,11 @@ def _clean_and_union(url_dict):
             df.dropna(subset=['값'], inplace=True)
 
             df['값'] = df['값'].astype('int')
-            cols = df.select_dtypes('object').columns.tolist()  # 차원컬럼만 선택
-            df = df.drop_duplicates(subset=cols).reset_index(drop=True)  # 중복제거
-            
+
+            # 차원컬럼만 선택후 그거 기준으로 중복제거
+            cols = df.select_dtypes('object').columns.tolist()
+            df = df.drop_duplicates(subset=cols).reset_index(drop=True)
+
             conn_db.to_(df, 'from_국토교통부', name)
             print(f'{name} 업데이트 완료')
             time.sleep(3)
@@ -62,7 +65,6 @@ def get_data_from_molit_api(start_dt, end_dt):
     '''
     yyyymm 형식으로 시작날짜와 종료 날짜 넣기
     '''
-    
     # 주택건설실적통계_인허가-------------------------------
     url_dict = {'form_id=1948&style_num=1': '주택유형별_인허가실적',
                 'form_id=1952&style_num=1': '주택규모별_인허가실적',
